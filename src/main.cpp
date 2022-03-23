@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "define.h"
+
 #include <LittleFS.h>                   //this needs to be first, or it all crashes and burns...
 
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
@@ -16,13 +16,13 @@
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 
 //define your default values here, if there are different values in config.json, they are overwritten.
-char mqtt_server[40]    = MQTT_SERVER;
-char mqtt_port[6]       = MQTT_PORT;
+char mqtt_server[40]    = "192.168.178.21";
+char mqtt_port[6]       = "1883";
 
 //Project name
-char WifiApName[40]     = WIFI_AP_NAME;
-char MQTTClientName[40] = MQTT_CLIENT_NAME;
-char OtaClientName[40]  = OTA_CLIENT_NAME;
+char WifiApName[40]     = "Wifi_EspAP";
+char MQTTClientName[40] = "Wifi_MQTT";
+char OtaClientName[40]  = "Wifi_OTA";
 
 // MQTT
 const char* pup_alive         = "/topic/active";
