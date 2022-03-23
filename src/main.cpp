@@ -24,7 +24,6 @@ char WifiApName[40]     = "Wifi_EspAP";
 char MQTTClientName[40] = "Wifi_MQTT";
 char OtaClientName[40]  = "Wifi_OTA";
 
-
 // MQTT
 const char* pup_alive         = "/topic/active";
 const char* sub_value1        = "/topic/value1";
@@ -35,8 +34,6 @@ const char* sub_value3        = "/topic/value3";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-
-
 //flag for saving data
 bool shouldSaveConfig = false;
 
@@ -45,8 +42,6 @@ void saveConfigCallback () {
   Serial.println("Should save config");
   shouldSaveConfig = true;
 }
-
-
 
 // OTA setup function:
 void OTA_setup (void)
@@ -85,10 +80,10 @@ void OTA_setup (void)
   Serial.println(WiFi.localIP());
 }
 
-boolean state = false;
-
 // MQTT callback function:
 void MQTTcallback(char* topic, byte* payload, unsigned int length) {
+
+  static boolean state = false; 
   Serial.print("Message arrived @ PUB [");
   Serial.print(topic);
   Serial.print("] ");
