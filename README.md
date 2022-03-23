@@ -8,11 +8,9 @@ PlatformIO Extension is necessary.
 
 ## further informations
 Needed packages:
+
  tzapu/WiFiManager @ ^0.16.0
-
  bblanchon/ArduinoJson @ 5.13.4
- 
-
  knolleary/PubSubClient @ 2.8
 
 ## Links
