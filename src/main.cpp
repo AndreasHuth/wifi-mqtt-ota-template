@@ -16,8 +16,8 @@
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 
 //define your default values here, if there are different values in config.json, they are overwritten.
-char mqtt_server[40] = "192.168.178.21";
-char mqtt_port[6] = "1883";
+char mqtt_server[40]    = "192.168.178.21";
+char mqtt_port[6]       = "1883";
 
 //Project name
 char WifiApName[40]     = "Wifi_EspAP";
@@ -74,10 +74,6 @@ void OTA_setup (void)
     else if (error == OTA_END_ERROR) Serial.println("End Failed");
   });
   ArduinoOTA.begin();
-
-  Serial.println("Ready");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
 }
 
 // MQTT callback function:
@@ -105,7 +101,6 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
   if (strcmp(topic, sub_value3) == 0) {
   }
 }
-
 
 // RECONNECT MQTT Server
 void reconnect() {
@@ -138,7 +133,6 @@ void setup() {
   // OUTPUT Definition !
   pinMode(D0, OUTPUT);
   digitalWrite(D0, LOW);
-
 
   //clean FS, for testing
   //LittleFS.format();
@@ -178,8 +172,6 @@ void setup() {
     Serial.println("failed to mount FS");
   }
   //end read
-
-
 
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
@@ -233,7 +225,6 @@ void setup() {
   strcpy(mqtt_server, custom_mqtt_server.getValue());
   strcpy(mqtt_port, custom_mqtt_port.getValue());
 
-
   //save the custom parameters to FS
   if (shouldSaveConfig) {
     Serial.println("saving config");
@@ -258,18 +249,15 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   // OTA starts here!
-
   OTA_setup();
 
   // MQTT - Connection:
   client.setServer(mqtt_server, 1883);
   client.setCallback(MQTTcallback);
-
 }
 
-long lastTransferTime = 0;
-
 void loop() {
+  static long lastTransferTime = 0;
   // MQTT connect
   if (!client.connected()) {
     reconnect();}
