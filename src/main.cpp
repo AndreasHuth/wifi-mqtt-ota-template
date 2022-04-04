@@ -287,6 +287,8 @@ String prepareHtmlPage()
                "\r\n"
                "<!DOCTYPE HTML>"
                "<html>");
+  htmlPage += "<body><h1>ESP8266 Web Server</h1>";
+  htmlPage += "<br>";  
 
   htmlPage += "Device Name      : ";     // Damit wir auf unserer Website später auch etwas ablesen können, müssen wir diese Füllen.
   htmlPage += DEVICE_NAME;                              // Dies erreichen wir mit dem Befehl "client.println" , ähnlich wie "Serial.println"
