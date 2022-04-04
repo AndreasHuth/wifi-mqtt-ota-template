@@ -34,6 +34,8 @@ const char* sub_value3        = "/topic/value3";
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+WiFiServer server(80);
+
 //flag for saving data
 bool shouldSaveConfig = false;
 
@@ -77,9 +79,10 @@ void OTA_setup (void)
 }
 
 // MQTT callback function:
+boolean state = false; 
+
 void MQTTcallback(char* topic, byte* payload, unsigned int length) {
 
-  static boolean state = false; 
   Serial.print("Message arrived @ PUB [");
   Serial.print(topic);
   Serial.print("] ");
@@ -124,6 +127,16 @@ void reconnect() {
     }
   }
 }
+
+String ip2Str(IPAddress ip){
+  String s="";
+  for (int i=0; i<4; i++) {
+    s += i  ? "." + String(ip[i]) : String(ip[i]);
+  }
+  return s;
+}
+
+String ip = "";
 
 void setup() {
   // put your setup code here, to run once:
@@ -193,8 +206,8 @@ void setup() {
   wifiManager.addParameter(&custom_mqtt_server);
   wifiManager.addParameter(&custom_mqtt_port);
 
-  //reset settings - for testing
-  wifiManager.resetSettings();
+    //reset settings - for testing
+  //wifiManager.resetSettings();
 
   //set minimu quality of signal so it ignores AP's under that quality
   //defaults to 8%
@@ -246,14 +259,110 @@ void setup() {
   }
 
   Serial.println("local ip");
-  Serial.println(WiFi.localIP());
+  ip = ip2Str (WiFi.localIP());
+  
+ //  WiFi.localIP(); 
+  Serial.println(ip);
 
   // OTA starts here!
   OTA_setup();
 
   // MQTT - Connection:
-  client.setServer(mqtt_server, 1883);
+  client.setServer(mqtt_server, atoi(mqtt_port));
   client.setCallback(MQTTcallback);
+
+  // Webserver!
+  server.begin();
+}
+
+// prepare a web page to be send to a client (web browser)
+String prepareHtmlPage()
+{
+  String htmlPage;
+  htmlPage.reserve(1024);               // prevent ram fragmentation
+  htmlPage = F("HTTP/1.1 200 OK\r\n"
+               "Content-Type: text/html\r\n"
+               "Connection: close\r\n"  // the connection will be closed after completion of the response
+               //"Refresh: 5\r\n"         // refresh the page automatically every 5 sec
+               "\r\n"
+               "<!DOCTYPE HTML>"
+               "<html>");
+
+  htmlPage += "Device Name      : ";     // Damit wir auf unserer Website später auch etwas ablesen können, müssen wir diese Füllen.
+  htmlPage += DEVICE_NAME;                              // Dies erreichen wir mit dem Befehl "client.println" , ähnlich wie "Serial.println"
+  htmlPage += "<br> <br>";   
+  
+  htmlPage += "SW-Version       : ";     // Damit wir auf unserer Website später auch etwas ablesen können, müssen wir diese Füllen.
+  htmlPage += SW_BASE_VERSION;                              // Dies erreichen wir mit dem Befehl "client.println" , ähnlich wie "Serial.println"
+  htmlPage += "<br> <br>"; 
+
+  htmlPage += "IP Adresse       : ";     // Damit wir auf unserer Website später auch etwas ablesen können, müssen wir diese Füllen.
+  htmlPage += ip;                              // Dies erreichen wir mit dem Befehl "client.println" , ähnlich wie "Serial.println"
+  htmlPage += "<br> <br>"; 
+  
+  htmlPage += "MQTT Server      : ";     // Damit wir auf unserer Website später auch etwas ablesen können, müssen wir diese Füllen.
+  htmlPage += mqtt_server;                              // Dies erreichen wir mit dem Befehl "client.println" , ähnlich wie "Serial.println"
+  htmlPage += "<br>";                              // "<br>" erschafft eine Leerzeile (bzw. definiert das Ende einer Zeile)
+
+  htmlPage += "MQTT Port        : ";     // Damit wir auf unserer Website später auch etwas ablesen können, müssen wir diese Füllen.
+  htmlPage += mqtt_port;                              // Dies erreichen wir mit dem Befehl "client.println" , ähnlich wie "Serial.println"
+  htmlPage += "<br>";                              // "<br>" erschafft eine Leerzeile (bzw. definiert das Ende einer Zeile)
+  
+  htmlPage += "MQTT Client Name : ";     // Damit wir auf unserer Website später auch etwas ablesen können, müssen wir diese Füllen.
+  htmlPage += MQTT_CLIENT_NAME;                              // Dies erreichen wir mit dem Befehl "client.println" , ähnlich wie "Serial.println"
+  htmlPage += "<br>";   
+
+  htmlPage += "MQTT Client : ";
+  if (!client.connected()) {
+    htmlPage += "NOT ";
+    }
+  htmlPage += "connected ";
+  htmlPage += "<br> <br>";   
+
+  htmlPage += "timer            : ";     // Damit wir auf unserer Website später auch etwas ablesen können, müssen wir diese Füllen.
+  htmlPage += millis();                              // Dies erreichen wir mit dem Befehl "client.println" , ähnlich wie "Serial.println"
+  htmlPage += "<br>";   
+
+  htmlPage += F("</html>\r\n");
+  return htmlPage;
+}
+
+
+void webServer (void)
+{
+  WiFiClient client = server.available();
+  // wait for a client (web browser) to connect
+  if (client)
+  {
+    Serial.println("\n[Client connected]");
+    while (client.connected())
+    {
+      // read line by line what the client (web browser) is requesting
+      if (client.available())
+      {
+        String line = client.readStringUntil('\r');
+        Serial.print(line);
+        // wait for end of client's request, that is marked with an empty line
+        if (line.length() == 1 && line[0] == '\n')
+        {
+          client.println(prepareHtmlPage());
+          break;
+        }
+      }
+    }
+
+    while (client.available()) {
+      // but first, let client finish its request
+      // that's diplomatic compliance to protocols
+      // (and otherwise some clients may complain, like curl)
+      // (that is an example, prefer using a proper webserver library)
+      client.read();
+    }
+
+    // close the connection:
+    client.stop();
+    Serial.println("[Client disconnected]");
+  }
 }
 
 void loop() {
@@ -265,6 +374,9 @@ void loop() {
 
   // OTA handler !
   ArduinoOTA.handle();
+
+  // WebServer
+  webServer();
 
   // put your main code here, to run repeatedly:
 
