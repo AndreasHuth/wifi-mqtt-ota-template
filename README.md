@@ -1,4 +1,4 @@
-# WifiMqttOta
+# wifi-mqtt-ota-template
 ## Short Description
 Template code to support wifi &amp; ota &amp; mqtt ESP8266 / wemos D1
 
