@@ -2,11 +2,16 @@
 #include "define.h"
 #include <LittleFS.h>
 
+#ifdef ESP32
+#include <WiFi.h>
+#include <WebServer.h>
+#else
 #include <ESP8266WiFi.h> //https://github.com/esp8266/Arduino
+#include <ESP8266WebServer.h>
+#endif
 
 // needed for library
 #include <DNSServer.h>
-#include <ESP8266WebServer.h>
 #include <WiFiManager.h> //https://github.com/tzapu/WiFiManager
 
 // needed for OTA & MQTT
@@ -158,8 +163,8 @@ void setup()
   Serial.println();
 
   // OUTPUT Definition !
-  pinMode(D0, OUTPUT);
-  digitalWrite(D0, LOW);
+  pinMode(2, OUTPUT);
+  digitalWrite(2, LOW);
 
   // clean FS, for testing
   // LittleFS.format();
@@ -249,7 +254,13 @@ void setup()
     Serial.println("failed to connect and hit timeout");
     delay(3000);
     // reset and try again, or maybe put it to deep sleep
+
+#ifdef ESP32
+    ESP.restart();
+#else
     ESP.reset();
+#endif
+
     delay(5000);
   }
 
